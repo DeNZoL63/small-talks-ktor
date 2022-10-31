@@ -25,7 +25,12 @@ val supportedCommands = listOf(
         "remind",
         "Remind me about something in N seconds, e.g., " +
                 "to remind about \"the thing\" in 10 seconds, send 'remind 10 the thing' ",
-    ) { payload -> runRemindCommand(payload) }
+    ) { payload -> runRemindCommand(payload) },
+
+    ApplicationCommand(
+        "want_communicate",
+        "I will add you in the list of users who want to meet someone new in our company"
+    ) { payload -> runAddUserToList(payload) }
 )
 
 /**
