@@ -1,4 +1,4 @@
-package ru.ordertime.plugins
+package ru.ordertime.small_talks.plugins
 
 import io.ktor.server.routing.*
 import io.ktor.http.*

@@ -1,4 +1,4 @@
-package ru.ordertime
+package ru.ordertime.small_talks
 
 import io.ktor.server.routing.*
 import io.ktor.http.*
@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import kotlin.test.*
 import io.ktor.server.testing.*
 import ru.ordertime.plugins.*
+import ru.ordertime.small_talks.plugins.configureRouting
 
 class ApplicationTest {
     @Test
