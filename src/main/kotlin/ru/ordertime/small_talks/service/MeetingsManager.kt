@@ -11,8 +11,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
-// TODO: remove test values
-val workingTime: IntRange = 0..23
+val workingTime: IntRange = 9..18
 
 fun initManager() {
     val scheduler = Scheduler {
@@ -31,9 +30,9 @@ private fun planMeetings() {
         return
     }
 
-    val nowLocalDate = now.toLocalDate()
+    var nowLocalDate = now.toLocalDate()
     val nextHour: Int = if (now.hour == 23) {
-        nowLocalDate.plusDays(1)
+        nowLocalDate = nowLocalDate.plusDays(1)
         0
     } else now.hour + 1
     val startTime = LocalTime.of(nextHour, 0, 0)
