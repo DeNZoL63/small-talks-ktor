@@ -8,16 +8,20 @@ import ru.ordertime.small_talks.domain.UserProfile
 import ru.ordertime.small_talks.domain.UserProfiles
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 // TODO: remove test values
-val workingTime:IntRange = 0..23
+val workingTime: IntRange = 0..23
 
 fun initManager() {
     val scheduler = Scheduler {
-        planMeetings()
+        try {
+            planMeetings()
+        } catch (e: Exception) {
+        }
     }
-    scheduler.scheduleExecution(Every(1, TimeUnit.HOURS))
+    scheduler.scheduleExecution(Every(1, TimeUnit.MINUTES))
 
 }
 
@@ -28,10 +32,16 @@ private fun planMeetings() {
     }
 
     val nowLocalDate = now.toLocalDate()
-    val startTime = LocalTime.of(now.hour + 1, 0, 0)
+    val nextHour: Int = if (now.hour == 23) {
+        nowLocalDate.plusDays(1)
+        0
+    } else now.hour + 1
+    val startTime = LocalTime.of(nextHour, 0, 0)
 
     val start = LocalDateTime.of(nowLocalDate, startTime)
+        .atZone(ZoneId.systemDefault())
     val end = LocalDateTime.of(nowLocalDate, startTime.plusMinutes(15))
+        .atZone(ZoneId.systemDefault())
 
     val topic = generateTopic()
 
@@ -43,6 +53,7 @@ private fun planMeetings() {
     profiles.forEach {
         runBlocking {
             createMeeting(
+                clientId = it.key,
                 start = start,
                 end = end,
                 topic = topic,

@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigFactory
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.ordertime.small_talks.domain.SpaceInstances
 import ru.ordertime.small_talks.domain.UserProfiles
 
 object DatabaseFactory {
@@ -22,6 +23,7 @@ object DatabaseFactory {
 
         transaction(database) {
             SchemaUtils.create(UserProfiles)
+            SchemaUtils.create(SpaceInstances)
         }
     }
 }

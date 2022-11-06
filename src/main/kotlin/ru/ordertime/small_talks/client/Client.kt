@@ -1,17 +1,141 @@
 package ru.ordertime.small_talks.client
 
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.transaction
+import ru.ordertime.small_talks.domain.SpaceInstance
+import ru.ordertime.small_talks.domain.SpaceInstances
 import space.jetbrains.api.runtime.SpaceAppInstance
 import space.jetbrains.api.runtime.SpaceAuth
 import space.jetbrains.api.runtime.SpaceClient
+import space.jetbrains.api.runtime.helpers.RequestAdapter
+import space.jetbrains.api.runtime.helpers.SpaceAppInstanceStorage
 import space.jetbrains.api.runtime.ktorClientForSpace
+import space.jetbrains.api.runtime.resources.applications
 import space.jetbrains.api.runtime.resources.calendars
 import space.jetbrains.api.runtime.resources.chats
 import space.jetbrains.api.runtime.types.*
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
+object AppInstanceStorage : SpaceAppInstanceStorage {
+    override suspend fun loadAppInstance(clientId: String): SpaceAppInstance? {
+        return convertToSpaceAppInstance(
+            findSpaceInstanceByClientId(clientId)
+        )
+    }
+
+    override suspend fun saveAppInstance(appInstance: SpaceAppInstance) {
+        transaction {
+            var spaceInstance = findSpaceInstanceByClientId(appInstance.clientId)
+            if (spaceInstance == null) {
+                spaceInstance = SpaceInstance.new { }
+            }
+            spaceInstance.clientId = appInstance.clientId
+            spaceInstance.spaceServerUrl = appInstance.spaceServer.serverUrl
+            spaceInstance.clientSecret = appInstance.clientSecret
+        }
+    }
+
+    private fun findSpaceInstanceByClientId(clientId: String): SpaceInstance? {
+        return transaction {
+            SpaceInstance.find(SpaceInstances.clientId eq clientId).firstOrNull()
+        }
+    }
+
+    private fun convertToSpaceAppInstance(spaceInstance: SpaceInstance?): SpaceAppInstance? {
+        if (spaceInstance == null) {
+            return null
+        }
+
+        return SpaceAppInstance(
+            clientId = spaceInstance.clientId,
+            clientSecret = spaceInstance.clientSecret,
+            spaceServerUrl = spaceInstance.spaceServerUrl
+        )
+    }
+
+}
+
+val ktorClient = ktorClientForSpace()
+
+class KtorRequestAdapter(private val call: ApplicationCall) : RequestAdapter {
+    override suspend fun receiveText() = call.receiveText()
+
+    override fun getHeader(headerName: String) = call.request.headers[headerName]
+
+    override suspend fun respond(httpStatusCode: Int, body: String) {
+        call.respond(HttpStatusCode.fromValue(httpStatusCode), body)
+    }
+}
+
+suspend fun requestPermissions(clientId: String) {
+    val spaceClient = getSpaceClient(clientId)
+    spaceClient?.applications?.authorizations?.authorizedRights?.requestRights(
+        application = ApplicationIdentifier.Me,
+        contextIdentifier = GlobalPermissionContextIdentifier,
+        rightCodes = listOf(
+            "Profile.Memberships.View",
+            "Channel.PostMessages",
+            "Meeting.Edit",
+            "Meeting.View",
+            "Profile.View"
+        )
+    )
+}
+
+suspend fun sendMessage(clientId: String, userId: String, message: ChatMessage) {
+    val spaceClient = getSpaceClient(clientId)
+    spaceClient?.chats?.messages?.sendMessage(
+        channel = ChannelIdentifier.Profile(ProfileIdentifier.Id(userId)),
+        content = message
+    )
+}
+
+suspend fun createMeeting(
+    clientId: String,
+    start: ZonedDateTime,
+    end: ZonedDateTime,
+    topic: String,
+    members: List<String>
+) {
+    val spaceClient = getSpaceClient(clientId)
+    spaceClient?.calendars?.meetings?.createMeeting(
+        summary = topic,
+        description = "This meeting is created to let you know colleagues better",
+        profiles = members,
+        occurrenceRule = CalendarEventSpec(
+            start = Instant.fromEpochSeconds(start.toEpochSecond()),
+            end = Instant.fromEpochSeconds(end.toEpochSecond()),
+            recurrenceRule = null,
+            allDay = false,
+            timezone = ATimeZone(
+                id = TimeZone.currentSystemDefault().id
+            ),
+            parentId = null,
+            initialMeetingStart = null,
+            busyStatus = BusyStatus.Free,
+            nextChainId = null
+        )
+    )
+}
+
+suspend fun getSpaceClient(clientId: String): SpaceClient? {
+    val appInstance = AppInstanceStorage.loadAppInstance(clientId)
+    if (appInstance == null) {
+        return null
+    }
+    return SpaceClient(
+        ktorClient, appInstance,
+        SpaceAuth.ClientCredentials()
+    )
+}
+
+/*
 // describes connection to a Space instance
 val spaceAppInstance = SpaceAppInstance(
     // Copy-paste the client-id, and the client-secret
@@ -61,4 +185,4 @@ suspend fun createMeeting(start: LocalDateTime, end: LocalDateTime, topic: Strin
             nextChainId = null
         )
     )
-}
+} */

@@ -7,7 +7,7 @@ import space.jetbrains.api.runtime.types.*
 // command for showing chatbot help
 suspend fun runHelpCommand(payload: MessagePayload) {
     // get user ID from the payload and send them a help message
-    sendMessage(payload.userId, helpMessage())
+    sendMessage(payload.clientId, payload.userId, helpMessage())
 }
 
 // build the help message using the special DSL

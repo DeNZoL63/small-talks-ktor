@@ -20,6 +20,6 @@ fun changeSubscriptionOnMeetings(userId: String, clientId: String, subscribe: Bo
             user.clientId = clientId
             user.subscribed = subscribe
         }
-        sendMessage(userId, messageOnSuccess)
+        sendMessage(clientId, userId, messageOnSuccess)
     }
 }
