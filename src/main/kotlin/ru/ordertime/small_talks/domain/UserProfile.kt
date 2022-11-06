@@ -1,14 +1,22 @@
 package ru.ordertime.small_talks.domain
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.EntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.UUIDTable
 import java.util.UUID
 
-data class UserProfile(val id: UUID, val spaceId: String, val wantToMeet: Boolean)
+class UserProfile(id: EntityID<UUID>): Entity<UUID>(id) {
+    companion object : EntityClass<UUID, UserProfile>(UserProfiles)
 
-object UserProfiles : Table() {
-    val id = uuid("id").autoGenerate().uniqueIndex()
-    val spaceId = varchar("space_id", 255)
-    val wantToMeet = bool("want_to_meet")
+    var clientId by UserProfiles.clientId
+    var spaceUserId by UserProfiles.spaceUserId
+    var subscribed by UserProfiles.subscribed
+}
 
-    override val primaryKey = PrimaryKey(id)
+
+object UserProfiles : UUIDTable() {
+    val clientId = varchar("client_id", 255)
+    val subscribed = bool("subscribed")
+    val spaceUserId = varchar("space_user_id", 255)
 }

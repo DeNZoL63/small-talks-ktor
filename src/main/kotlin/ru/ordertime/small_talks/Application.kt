@@ -11,7 +11,6 @@ fun main() {
         .start(wait = true)
 
 }
-//fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 fun Application.module() {
     DatabaseFactory.init()

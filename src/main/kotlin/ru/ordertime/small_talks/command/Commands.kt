@@ -1,6 +1,9 @@
 package ru.ordertime.small_talks.command
 
-import space.jetbrains.api.runtime.types.*
+import space.jetbrains.api.runtime.types.CommandDetail
+import space.jetbrains.api.runtime.types.Commands
+import space.jetbrains.api.runtime.types.ListCommandsPayload
+import space.jetbrains.api.runtime.types.MessagePayload
 
 class ApplicationCommand(
     val name: String,
@@ -22,15 +25,14 @@ val supportedCommands = listOf(
     ) { payload -> runHelpCommand(payload) },
 
     ApplicationCommand(
-        "remind",
-        "Remind me about something in N seconds, e.g., " +
-                "to remind about \"the thing\" in 10 seconds, send 'remind 10 the thing' ",
-    ) { payload -> runRemindCommand(payload) },
+        "subscribe",
+        "I will add you in the list of users who want to meet someone new in our company"
+    ) { payload -> runSubscribeUserOnMeetings(payload) },
 
     ApplicationCommand(
-        "want_communicate",
-        "I will add you in the list of users who want to meet someone new in our company"
-    ) { payload -> runAddUserToList(payload) }
+        "unsubscribe",
+        "I will remove you from the list of users who want to meet someone new in our company"
+    ) { payload -> runUnsubscribeUserFromMeetings(payload) }
 )
 
 /**
