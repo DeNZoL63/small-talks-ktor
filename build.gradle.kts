@@ -44,3 +44,13 @@ dependencies {
     implementation("org.postgresql:postgresql:$postgresql_version")
     testImplementation("org.testng:testng:7.1.0")
 }
+
+tasks.jar {
+    manifest.attributes["Main-Class"] = "ru.ordertime.small_talks.ApplicationKt"
+    val dependencies = configurations
+        .runtimeClasspath
+        .get()
+        .map(::zipTree) // OR .map { zipTree(it) }
+    from(dependencies)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

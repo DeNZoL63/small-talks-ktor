@@ -20,7 +20,7 @@ fun initManager() {
         } catch (e: Exception) {
         }
     }
-    scheduler.scheduleExecution(Every(1, TimeUnit.MINUTES))
+    scheduler.scheduleExecution(Every(2, TimeUnit.HOURS))
 
 }
 
