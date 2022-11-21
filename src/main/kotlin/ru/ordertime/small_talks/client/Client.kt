@@ -86,6 +86,10 @@ suspend fun requestPermissions(clientId: String) {
             "Profile.View"
         )
     )
+    spaceClient?.applications?.setUiExtensions(
+        contextIdentifier = GlobalPermissionContextIdentifier,
+        extensions = listOf(ChatBotUiExtensionIn)
+    )
 }
 
 suspend fun sendMessage(clientId: String, userId: String, message: ChatMessage) {
